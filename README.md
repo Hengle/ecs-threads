@@ -1,6 +1,6 @@
 [![gitter](https://img.shields.io/gitter/room/leopotam/ecs.svg)](https://gitter.im/leopotam/ecs)
 [![license](https://img.shields.io/github/license/Leopotam/ecs-threads.svg)](https://github.com/Leopotam/ecs-threads/blob/develop/LICENSE)
-# Unity uGui extension for Entity Component System framework
+# Multithreading extension for Entity Component System framework
 Multithreading support for [ECS framework](https://github.com/Leopotam/ecs) - main goal of this extension.
 
 > Tested on unity 2018.2 (not dependent on Unity engine) and contains assembly definition for compiling to separate assembly file for performance reason.
