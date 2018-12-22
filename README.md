@@ -3,7 +3,7 @@
 # Multithreading extension for Entity Component System framework
 Multithreading support for [ECS framework](https://github.com/Leopotam/ecs) - main goal of this extension.
 
-> Tested on unity 2018.2 (not dependent on Unity engine) and contains assembly definition for compiling to separate assembly file for performance reason.
+> Tested on unity 2018.3 (not dependent on Unity engine) and contains assembly definition for compiling to separate assembly file for performance reason.
 
 > Dependent on [ECS framework](https://github.com/Leopotam/ecs) - ECS framework should be imported first.
 
