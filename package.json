@@ -1,0 +1,21 @@
+{
+    "name": "com.leopotam.ecs-threads",
+    "author": "Leopotam",
+    "displayName": "LeoECS Threads",
+    "description": "Multithreading support for LeoECS Entity Component System framework.",
+    "unity": "2018.3",
+    "version": "2018.12.22",
+    "keywords": [
+        "leoecs",
+        "ecs",
+        "performance",
+        "threads",
+        "jobs",
+        "multithreading"
+    ],
+    "dependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Leopotam/ecs-threads.git"
+    }
+}
