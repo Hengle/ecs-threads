@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License
 // MultiThreading for Entity Component System framework https://github.com/Leopotam/ecs
-// Copyright (c) 2017-2018 Leopotam <leopotam@gmail.com>
+// Copyright (c) 2017-2019 Leopotam <leopotam@gmail.com>
 // ----------------------------------------------------------------------------
 
 using System;
@@ -110,7 +110,11 @@ namespace Leopotam.Ecs.Threads {
                 }
                 // local worker.
                 _worker (_filter, processed, count);
-                WaitHandle.WaitAll (_syncs);
+
+                // sync workers back to ecs thread.
+                for (var i = 0; i < _syncs.Length; i++) {
+                    _syncs[i].WaitOne ();
+                }
             }
         }
 
