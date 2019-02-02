@@ -5,6 +5,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 #if ENABLE_IL2CPP
@@ -34,8 +35,9 @@ namespace Leopotam.Ecs.Threads {
     [Unity.IL2CPP.CompilerServices.Il2CppSetOption (Unity.IL2CPP.CompilerServices.Option.ArrayBoundsChecks, false)]
 #endif
     public abstract class EcsMultiThreadSystem<T> : IEcsPreInitSystem, IEcsRunSystem where T : EcsFilter {
-        WorkerDesc[] _descs;
+        EcsMultiThreadWorkerDesc[] _descs;
         ManualResetEvent[] _syncs;
+        EcsMultiThreadWorkerDesc _localDesc;
         T _filter;
         EcsMultiThreadWorker _worker;
         int _minJobSize;
@@ -57,10 +59,11 @@ namespace Leopotam.Ecs.Threads {
                 throw new Exception ("GetThreadsCount() returned invalid value");
             }
 #endif
-            _descs = new WorkerDesc[_threadsCount];
+            _localDesc = new EcsMultiThreadWorkerDesc (_filter);
+            _descs = new EcsMultiThreadWorkerDesc[_threadsCount];
             _syncs = new ManualResetEvent[_threadsCount];
             for (var i = 0; i < _descs.Length; i++) {
-                var desc = new WorkerDesc ();
+                var desc = new EcsMultiThreadWorkerDesc (_filter);
                 desc.Thread = new Thread (ThreadProc);
                 desc.Thread.IsBackground = true;
 #if DEBUG
@@ -86,10 +89,11 @@ namespace Leopotam.Ecs.Threads {
             }
             _filter = null;
             _worker = null;
+            _localDesc = null;
         }
 
         void IEcsRunSystem.Run () {
-            var count = _filter.EntitiesCount;
+            var count = _filter.GetEnumerator ().GetCount ();
             if (count > 0) {
                 var processed = 0;
                 var jobSize = count / (_threadsCount + 1);
@@ -109,7 +113,9 @@ namespace Leopotam.Ecs.Threads {
                     desc.HasWork.Set ();
                 }
                 // local worker.
-                _worker (_filter, processed, count);
+                _localDesc.IndexFrom = processed;
+                _localDesc.IndexTo = count;
+                _worker (_localDesc);
 
                 // sync workers back to ecs thread.
                 for (var i = 0; i < _syncs.Length; i++) {
@@ -119,26 +125,16 @@ namespace Leopotam.Ecs.Threads {
         }
 
         void ThreadProc (object rawDesc) {
-            var desc = (WorkerDesc) rawDesc;
+            var desc = (EcsMultiThreadWorkerDesc) rawDesc;
             try {
                 while (Thread.CurrentThread.IsAlive) {
                     desc.HasWork.WaitOne ();
                     desc.HasWork.Reset ();
-                    desc.Worker (_filter, desc.IndexFrom, desc.IndexTo);
+                    desc.Worker (desc);
                     desc.WorkDone.Set ();
                 }
             } catch { }
         }
-
-        sealed class WorkerDesc {
-            public Thread Thread;
-            public ManualResetEvent HasWork;
-            public ManualResetEvent WorkDone;
-            public EcsMultiThreadWorker Worker;
-            public int IndexFrom;
-            public int IndexTo;
-        }
-
         /// <summary>
         /// Source filter for processing entities from it.
         /// </summary>
@@ -159,6 +155,68 @@ namespace Leopotam.Ecs.Threads {
         /// </summary>
         protected abstract int GetThreadsCount ();
 
-        public delegate void EcsMultiThreadWorker (T filter, int from, int to);
+        public delegate void EcsMultiThreadWorker (EcsMultiThreadWorkerDesc workerDesc);
+
+        public sealed class EcsMultiThreadWorkerDesc {
+            public readonly T Filter;
+            internal Thread Thread;
+            internal ManualResetEvent HasWork;
+            internal ManualResetEvent WorkDone;
+            internal EcsMultiThreadWorker Worker;
+            internal int IndexFrom;
+            internal int IndexTo;
+
+            internal EcsMultiThreadWorkerDesc (T filter) {
+                Filter = filter;
+            }
+
+#if NET_4_6 || NET_STANDARD_2_0
+            [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+            public Enumerator GetEnumerator () {
+                return new Enumerator (IndexFrom, IndexTo);
+            }
+
+            public struct Enumerator : IEnumerator<int> {
+                readonly int _count;
+                int _idx;
+
+#if NET_4_6 || NET_STANDARD_2_0
+                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+                internal Enumerator (int from, int to) {
+                    _idx = from - 1;
+                    _count = to;
+                }
+
+                public int Current {
+#if NET_4_6 || NET_STANDARD_2_0
+                    [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+                    get { return _idx; }
+                }
+
+                object System.Collections.IEnumerator.Current { get { return null; } }
+
+#if NET_4_6 || NET_STANDARD_2_0
+                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+                public void Dispose () { }
+
+#if NET_4_6 || NET_STANDARD_2_0
+                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+                public bool MoveNext () {
+                    return ++_idx < _count;
+                }
+
+#if NET_4_6 || NET_STANDARD_2_0
+                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+#endif
+                public void Reset () {
+                    _idx = -1;
+                }
+            }
+        }
     }
 }
