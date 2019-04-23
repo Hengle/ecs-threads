@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 #if ENABLE_IL2CPP
@@ -170,9 +171,7 @@ namespace Leopotam.Ecs.Threads {
                 Filter = filter;
             }
 
-#if NET_4_6 || NET_STANDARD_2_0
-            [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+            [MethodImpl (MethodImplOptions.AggressiveInlining)]
             public Enumerator GetEnumerator () {
                 return new Enumerator (IndexFrom, IndexTo);
             }
@@ -181,38 +180,28 @@ namespace Leopotam.Ecs.Threads {
                 readonly int _count;
                 int _idx;
 
-#if NET_4_6 || NET_STANDARD_2_0
-                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+                [MethodImpl (MethodImplOptions.AggressiveInlining)]
                 internal Enumerator (int from, int to) {
                     _idx = from - 1;
                     _count = to;
                 }
 
                 public int Current {
-#if NET_4_6 || NET_STANDARD_2_0
-                    [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+                    [MethodImpl (MethodImplOptions.AggressiveInlining)]
                     get { return _idx; }
                 }
 
                 object System.Collections.IEnumerator.Current { get { return null; } }
 
-#if NET_4_6 || NET_STANDARD_2_0
-                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+                [MethodImpl (MethodImplOptions.AggressiveInlining)]
                 public void Dispose () { }
 
-#if NET_4_6 || NET_STANDARD_2_0
-                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+                [MethodImpl (MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext () {
                     return ++_idx < _count;
                 }
 
-#if NET_4_6 || NET_STANDARD_2_0
-                [System.Runtime.CompilerServices.MethodImpl (System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-#endif
+                [MethodImpl (MethodImplOptions.AggressiveInlining)]
                 public void Reset () {
                     _idx = -1;
                 }
@@ -220,7 +209,3 @@ namespace Leopotam.Ecs.Threads {
         }
     }
 }
-
-#if !NET_4_6 && !NET_STANDARD_2_0
-#warning [Leopotam.Ecs.Threads] .Net Framework v3.5 support deprecated and will be removed in next release.
-#endif
