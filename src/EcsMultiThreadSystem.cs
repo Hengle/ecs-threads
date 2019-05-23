@@ -94,7 +94,7 @@ namespace Leopotam.Ecs.Threads {
         }
 
         void IEcsRunSystem.Run () {
-            var count = _filter.GetEnumerator ().GetCount ();
+            var count = _filter.GetEntitiesCount ();
             if (count > 0) {
                 var processed = 0;
                 var jobSize = count / (_threadsCount + 1);
