@@ -35,7 +35,7 @@ namespace Leopotam.Ecs.Threads {
     [Unity.IL2CPP.CompilerServices.Il2CppSetOption (Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
     [Unity.IL2CPP.CompilerServices.Il2CppSetOption (Unity.IL2CPP.CompilerServices.Option.ArrayBoundsChecks, false)]
 #endif
-    public abstract class EcsMultiThreadSystem<T> : IEcsPreInitSystem, IEcsRunSystem where T : EcsFilter {
+    public abstract class EcsMultiThreadSystem<T> : IEcsPreInitSystem, IEcsAfterDestroySystem, IEcsRunSystem where T : EcsFilter {
         EcsMultiThreadWorkerDesc[] _descs;
         ManualResetEvent[] _syncs;
         EcsMultiThreadWorkerDesc _localDesc;
@@ -44,7 +44,7 @@ namespace Leopotam.Ecs.Threads {
         int _minJobSize;
         int _threadsCount;
 
-        void IEcsPreInitSystem.PreInitialize () {
+        void IEcsPreInitSystem.PreInit () {
             _filter = GetFilter ();
             _worker = GetWorker ();
             _minJobSize = GetMinJobSize ();
@@ -79,7 +79,7 @@ namespace Leopotam.Ecs.Threads {
             }
         }
 
-        void IEcsPreInitSystem.PreDestroy () {
+        void IEcsAfterDestroySystem.AfterDestroy () {
             for (var i = 0; i < _descs.Length; i++) {
                 var desc = _descs[i];
                 _descs[i] = null;
